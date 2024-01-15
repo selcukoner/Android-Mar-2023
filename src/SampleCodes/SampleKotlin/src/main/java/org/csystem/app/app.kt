@@ -1,36 +1,28 @@
 /*----------------------------------------------------------------------------------------------------------------------
-    Thread havuzları ve Excutors:
+
 ----------------------------------------------------------------------------------------------------------------------*/
 package org.csystem.app
 
-import kotlin.concurrent.thread
-import kotlin.random.Random
-
-fun threadCallback()
-{
-    val self = Thread.currentThread()
-    var sum = 0L
-
-    while (!Thread.interrupted()) {
-        val value = Random.nextInt()
-        println(value)
-        sum += value
-    }
-
-    println("Sum first = $sum")
-
-    while (!self.isInterrupted) {
-        val value = Random.nextInt()
-        println(value)
-        sum += value
-    }
-
-    println("Sum last = $sum")
-}
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 fun main()
 {
-    thread(block = ::threadCallback).apply { join(3000); interrupt(); join(1000); interrupt()}
-}
+    val pool = Executors.newScheduledThreadPool(1)
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy kk:mm:ss")
 
+    val future = pool.scheduleAtFixedRate({print("%s\r".format(formatter.format(LocalDateTime.now())))}, 0L, 1, TimeUnit.SECONDS)
+
+    try {
+        future.get(3, TimeUnit.SECONDS)
+    }
+    catch (_: TimeoutException) {
+        future.cancel(false)
+    }
+
+    pool.shutdown()
+}
 
